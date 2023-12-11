@@ -309,7 +309,7 @@ int IsMeterInDock(void)
 {
 	int in_dock_value = -1;
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		in_dock_value = gpiod_line_get_value(in_dock_line);
 
@@ -338,7 +338,7 @@ int IsBatteryCharging(void)
 {
 	int charging_value = -1;
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		charging_value = gpiod_line_get_value(charging_line);
 
