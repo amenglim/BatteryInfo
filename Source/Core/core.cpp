@@ -75,15 +75,18 @@ const char INIT_SUFFIX[]    = "_init";
 const char START_SUFFIX[]   = "_start";
 const char END_SUFFIX[]     = "_end";
 int brightness = 60;
+std::string brightness_string;
 
 void SetScreenBrightness(int brightness)
 {
-	std::string brightness_string = std::to_string(brightness);
+
+	brightness_string = std::to_string(brightness);
 	std::string command = "echo " + brightness_string + " >> /sys/class/backlight/lcd-backlight/brightness";
 	system((char*)command.c_str());
-	brightness_value.text = brightness_string;
+	//brightness_value.text = brightness_string;
 	DBGPRT(DBG_INFO1, "SetScreenBrightness: brightness set to %s\n", brightness_value.text.c_str());
 	//ChangeLabel(brightness_value, (char*)brightness_string.c_str());
+
 }
 
 void decrease_brightness_btn_callback(lv_obj_t *obj, lv_event_t event)
@@ -93,6 +96,7 @@ void decrease_brightness_btn_callback(lv_obj_t *obj, lv_event_t event)
 		std::string id = (char*)lv_obj_get_user_data(obj);
 		Audio_PlayTrack(KeyPress);
 		brightness--;
+		SetScreenBrightness(brightness);
 	}
 }
 
@@ -103,6 +107,7 @@ void increase_brightness_btn_callback(lv_obj_t *obj, lv_event_t event)
 		std::string id = (char*)lv_obj_get_user_data(obj);
 		Audio_PlayTrack(KeyPress);
 		brightness++;
+		SetScreenBrightness(brightness);
 	}
 }
 
@@ -134,22 +139,22 @@ void AddAdjustBrightness()
 	increase_btn.h         = BTN_HEIGHT;
 	increase_btn.obj	   = AddButton(&increase_btn);
 }
+
 void *brightness_monitor(void *arg)
 {
-	UNUSED(arg);
+	char *changeBrightness = (char*)arg;
+	std::string convertBrightness = changeBrightness;
+
 	DBGPRT(DBG_INFO1, "brightness_monitor: started\n");
-	usleep(250000);
 
 	while (1)
 	{
-		std::string brightness_string = "";
-		brightness_string = std::to_string(brightness);
-		std::string command = "echo " + brightness_string + " >> /sys/class/backlight/lcd-backlight/brightness";
-		system((char*)command.c_str());
-		//brightness_value.text = brightness_string;
-		//DBGPRT(DBG_INFO1, "SetScreenBrightness: brightness set to %s\n", brightness_value.text.c_str());
-		//ChangeLabel(brightness_value, (char*)brightness);
-		//sleep(3);
+		//std::string convertBrightness = std::to_string(changeBrightness);
+		if(brightness_value.text != convertBrightness)
+		{
+			ChangeLabel(brightness_value, changeBrightness);
+		}
+		sleep(0.25);
 	}
 	return NULL;
 }
@@ -158,7 +163,6 @@ void *battery_current_monitor(void *arg)
 {
 	UNUSED(arg);
 	DBGPRT(DBG_INFO1, "battery_current_monitor: started\n");
-	usleep(250000);
 
 	while (1)
 	{
@@ -182,7 +186,7 @@ void *battery_current_monitor(void *arg)
 			current.color = LV_COLOR_RED;
 		}
 		ChangeLabel(current, (char*)batteryCurrentFormatted.c_str());
-		sleep(3);
+		sleep(0.5);
 	}
 }
 
@@ -190,7 +194,6 @@ void *battery_voltage_monitor(void *arg)
 {
 	UNUSED(arg);
 	DBGPRT(DBG_INFO1, "battery_voltage_monitor: started\n");
-	usleep(250000);
 
 	while (1)
 	{
@@ -210,7 +213,7 @@ void *battery_voltage_monitor(void *arg)
 			voltage.color = LV_COLOR_RED;
 		}
 		ChangeLabel(voltage, (char*)batteryVoltageFormatted.c_str());
-		sleep(3);
+		sleep(0.5);
 	}
 }
 
@@ -218,7 +221,6 @@ void *battery_health_monitor(void *arg)
 {
 	UNUSED(arg);
 	DBGPRT(DBG_INFO1, "battery_health_monitor: started\n");
-	usleep(250000);
 
 	while (1)
 	{
@@ -243,7 +245,7 @@ void *battery_health_monitor(void *arg)
 		}
 
 		ChangeLabel(battery_health, (char*)batteryHealth.c_str());
-		sleep(3);
+		sleep(0.5);
 	}
 }
 
@@ -251,7 +253,6 @@ void *battery_temp_monitor(void *arg)
 {
 	UNUSED(arg);
 	DBGPRT(DBG_INFO1, "battery_temp_monitor: started\n");
-	usleep(250000);
 
 	while (1)
 	{
@@ -273,7 +274,7 @@ void *battery_temp_monitor(void *arg)
 		}
 
 		ChangeLabel(battery_temp, (char*)batteryTempFormatted.c_str());
-		sleep(3);
+		sleep(0.5);
 	}
 }
 
@@ -281,7 +282,6 @@ void *battery_level_monitor(void *arg)
 {
 	UNUSED(arg);
 	DBGPRT(DBG_INFO1, "battery_level_monitor: started\n");
-	usleep(250000);
 
 	while (1)
 	{
@@ -301,7 +301,7 @@ void *battery_level_monitor(void *arg)
 			battery_level.color = LV_COLOR_RED;
 		}
 		ChangeLabel(battery_level, (char*)batteryLevelFormatted.c_str());
-		sleep(3);
+		sleep(0.5);
 	}
 }
 
@@ -309,28 +309,15 @@ void *in_dock_monitor(void *arg)
 {
 	UNUSED(arg);
 	DBGPRT(DBG_INFO1, "in_dock_charging_monitor: started\n");
-	usleep(250000);
+	//sleep(3);
 
 	while (1)
 	{
-		std::string checkingLabel = "Checking...";
-		in_dock.color = LV_COLOR_ORANGE;
-		ChangeLabel(in_dock, (char*)checkingLabel.c_str());
-
-		charging.color = LV_COLOR_ORANGE;
-		ChangeLabel(charging, (char*)checkingLabel.c_str());
-
 		int isMeterInDock = IsMeterInDock();
 		std::string isMeterInDockValue = (isMeterInDock == 0) ? "TRUE" : "FALSE";
 		in_dock.color = (isMeterInDock == 0) ? LV_COLOR_GREEN : LV_COLOR_RED;
 		ChangeLabel(in_dock, (char*)isMeterInDockValue.c_str());
-
-		int isBatteryCharging = IsBatteryCharging();
-		std::string isBatteryChargingValue = (isBatteryCharging == 1) ? "TRUE" : "FALSE";
-		charging.color = (isBatteryCharging == 1) ? LV_COLOR_GREEN : LV_COLOR_RED;
-		ChangeLabel(charging, (char*)isBatteryChargingValue.c_str());
-
-		sleep(3);
+		sleep(0.5);
 	}
 }
 
@@ -338,20 +325,14 @@ void *battery_charging_monitor(void *arg)
 {
 	UNUSED(arg);
 	DBGPRT(DBG_INFO1, "battery_charging_monitor: started\n");
-	usleep(250000);
 
 	while (1)
 	{
-		std::string checkingLabel = "Checking...";
-		charging.color = LV_COLOR_ORANGE;
-		ChangeLabel(charging, (char*)checkingLabel.c_str());
-
 		int isBatteryCharging = IsBatteryCharging();
 		std::string isBatteryChargingValue = (isBatteryCharging == 1) ? "TRUE" : "FALSE";
 		charging.color = (isBatteryCharging == 1) ? LV_COLOR_GREEN : LV_COLOR_RED;
 		ChangeLabel(charging, (char*)isBatteryChargingValue.c_str());
-
-		sleep(3);
+		sleep(0.5);
 	}
 }
 
@@ -562,14 +543,14 @@ void *main_menu(void *arg)
 
 	pthread_t batteryMonitor;
 	pthread_create(&batteryMonitor, NULL, RunBatteryMonitor, NULL);
+	pthread_create(&in_dock_monitor_tid, NULL, in_dock_monitor, NULL);
+	pthread_create(&brightness_monitor_tid, NULL, brightness_monitor, (void*)brightness);
 	pthread_create(&battery_current_tid, NULL, battery_current_monitor, NULL);
 	pthread_create(&battery_voltage_tid, NULL, battery_voltage_monitor, NULL);
 	pthread_create(&battery_health_tid, NULL, battery_health_monitor, NULL);
 	pthread_create(&battery_temp_tid, NULL, battery_temp_monitor, NULL);
 	pthread_create(&battery_level_tid, NULL, battery_level_monitor, NULL);
-	pthread_create(&in_dock_monitor_tid, NULL, in_dock_monitor, NULL);
 	pthread_create(&battery_charging_tid, NULL, battery_charging_monitor, NULL);
-	pthread_create(&brightness_monitor_tid, NULL, brightness_monitor, NULL);
 	return NULL;
 }
 
