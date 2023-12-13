@@ -142,19 +142,19 @@ void AddAdjustBrightness()
 
 void *brightness_monitor(void *arg)
 {
-	char *changeBrightness = (char*)arg;
-	std::string convertBrightness = changeBrightness;
+	UNUSED(arg);
 
 	DBGPRT(DBG_INFO1, "brightness_monitor: started\n");
 
 	while (1)
 	{
-		//std::string convertBrightness = std::to_string(changeBrightness);
-		if(brightness_value.text != convertBrightness)
+		std::string b = std::to_string(brightness);
+		if(brightness_value.text != b)
 		{
-			ChangeLabel(brightness_value, changeBrightness);
+			brightness_value.text = b;
+			ChangeLabel(brightness_value, (char*)b.c_str());
 		}
-		sleep(0.25);
+		usleep(1000);
 	}
 	return NULL;
 }
