@@ -309,26 +309,10 @@ int IsMeterInDock(void)
 {
 	int in_dock_value = -1;
 
-	for (int i = 0; i < 1; i++)
+	if ((in_dock_value = gpiod_line_get_value(in_dock_line)) == NULL)
 	{
-		in_dock_value = gpiod_line_get_value(in_dock_line);
-
-		if (in_dock_value == 0)
-		{
-			DBGPRT(DBG_INFO4, "IsMeterInDock: In Dock value captured, %d\n", in_dock_value);
-			usleep(1000000);
-			break;
-		}
-		else if (in_dock_value == 1)
-		{
-			DBGPRT(DBG_INFO4, "IsMeterInDock: Get in base value low, re-checking, value = %d\n", in_dock_value);
-			usleep(1000000);
-		}
-		else
-		{
-			DBGPRT(DBG_ERR, "IsMeterInDock: Get in base value failed, %s\n", strerror(errno));
-			usleep(1000000);
-		}
+		DBGPRT(DBG_ERR, "IsMeterInDock: Get in dock value failed, %s\n", strerror(errno));
+		in_dock_value = -1;
 	}
 
 	return in_dock_value;
@@ -338,26 +322,10 @@ int IsBatteryCharging(void)
 {
 	int charging_value = -1;
 
-	for (int i = 0; i < 1; i++)
+	if ((charging_value = gpiod_line_get_value(charging_line)) == NULL)
 	{
-		charging_value = gpiod_line_get_value(charging_line);
-
-		if (charging_value == 1)
-		{
-			DBGPRT(DBG_INFO4, "IsBatteryCharging: Charging value captured, %d\n", charging_value);
-			usleep(1000000);
-			break;
-		}
-		else if (charging_value == 0)
-		{
-			DBGPRT(DBG_INFO4, "IsBatteryCharging: Get charging value high, re-checking, value = %d\n", charging_value);
-			usleep(1000000);
-		}
-		else
-		{
-			DBGPRT(DBG_ERR, "IsBatteryCharging: Get charging value failed, %s\n", strerror(errno));
-			usleep(1000000);
-		}
+		DBGPRT(DBG_ERR, "IsBatteryCharging: Get charging value failed, %s\n", strerror(errno));
+		charging_value = -1;
 	}
 
 	return charging_value;
