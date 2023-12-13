@@ -540,16 +540,20 @@ void *main_menu(void *arg)
 	AddLabel(brightness_value, (char*)brightness_value.text.c_str());
 
 	usleep(250000);
+	
+	Battery_Init();
 
-	pthread_t batteryMonitor;
-	pthread_create(&batteryMonitor, NULL, RunBatteryMonitor, NULL);
-	pthread_create(&in_dock_monitor_tid, NULL, in_dock_monitor, NULL);
+	sleep(1);
+	
+	//pthread_t batteryMonitor;
+	//pthread_create(&batteryMonitor, NULL, RunBatteryMonitor, NULL);
 	pthread_create(&brightness_monitor_tid, NULL, brightness_monitor, (void*)brightness);
 	pthread_create(&battery_current_tid, NULL, battery_current_monitor, NULL);
 	pthread_create(&battery_voltage_tid, NULL, battery_voltage_monitor, NULL);
 	pthread_create(&battery_health_tid, NULL, battery_health_monitor, NULL);
 	pthread_create(&battery_temp_tid, NULL, battery_temp_monitor, NULL);
 	pthread_create(&battery_level_tid, NULL, battery_level_monitor, NULL);
+	pthread_create(&in_dock_monitor_tid, NULL, in_dock_monitor, NULL);
 	pthread_create(&battery_charging_tid, NULL, battery_charging_monitor, NULL);
 	return NULL;
 }
@@ -570,17 +574,13 @@ int main(int argc, char **argv)
 
 	DBGPRT(DBG_INFO1, "Hospital Meter Battery Info version - %s\n", version.c_str());
 
-	//SetScreenBrightness(brightness);
+	SetScreenBrightness(brightness);
 
 	GuiInit();
 
 	AddAdjustBrightness();
 
 	pthread_create(&tid, NULL, main_menu, (void*)version.c_str());
-	pthread_mutex_lock(&start_lock);
-	pthread_cond_wait(&start_cond1, &start_lock);
-	pthread_mutex_unlock(&start_lock);
-	pthread_join(tid, NULL);
 
 	DBGPRT(DBG_INFO1, "Hospital Meter Battery Info Completed\n");
 
