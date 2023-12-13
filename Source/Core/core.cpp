@@ -581,7 +581,11 @@ int main(int argc, char **argv)
 	AddAdjustBrightness();
 
 	pthread_create(&tid, NULL, main_menu, (void*)version.c_str());
-
+	pthread_mutex_lock(&start_lock);
+	pthread_cond_wait(&start_cond1, &start_lock);
+	pthread_mutex_unlock(&start_lock);
+	pthread_join(tid, NULL);
+	
 	DBGPRT(DBG_INFO1, "Hospital Meter Battery Info Completed\n");
 
 	return 0;
